@@ -4,9 +4,32 @@ import time
 import datetime
 import pyttsx
 
+negros = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35]
+class Valores(object):
+    def __init__(self):
+        self.papel = [1,2,3,4]
+    def proxima_apuesta(self):
+        if not self.papel:
+            self.papel=[1,2,3,4]
+        #print  self.papel[0] + self.papel[-1]
+        return self.papel[0] + self.papel[-1]
+    def gane(self):
+        if self.proxima_apuesta()>= 2000:
+            self.papel=[1,2,3,4]
+        else:
+            self.papel.append(self.proxima_apuesta())
+    def perdi(self):
+        del self.papel[0]
+        if self.papel:
+            del self.papel[-1]
 
+pmenor = (525, 419)
+pmayor = (1056, 576)
+ppar = (629, 452)
+pimpar = (947, 545)
+projo = (729, 479)
+pnegro = (836, 514)
 
-negro = (835,513)
 tirar = (1241,700)
 borrar = (820,700)
 color = (164,544)
@@ -23,11 +46,6 @@ imnum = {-651500415: 15, -685688573: 26, -1127077623: 4, 1453040397: 17,
          901856083: 9, 2133739253: 5, 1840417527: 32, -1642809095: 35,
          1314379135: 3}
 
-def fib(n):
-    a,b = 1,1
-    for i in range(n-1):
-        a,b = b,a+b
-    return a
 
 def numero():
     im=ImageGrab.grab(bbox=(120,471,208,529)) # X1,Y1,X2,Y2
@@ -51,12 +69,27 @@ def rotapixel():
     s = ImageGrab.grab()
     return s.getpixel(protando)
 
-def alnegro(cant):
+def apostar(amayor,amenor,apar,aimpar,arojo,anegro):
     time.sleep(0.01)
     click(borrar)
     time.sleep(0.01)
-    for i in range(cant):
-        click(negro)
+    for i in range(amayor):
+        click(pmayor)
+        time.sleep(0.01)
+    for i in range(amenor):
+        click(pmenor)
+        time.sleep(0.01)
+    for i in range(apar):
+        click(ppar)
+        time.sleep(0.01)
+    for i in range(aimpar):
+        click(pimpar)
+        time.sleep(0.01)
+    for i in range(arojo):
+        click(projo)
+        time.sleep(0.01)
+    for i in range(anegro):
+        click(pnegro)
         time.sleep(0.01)
     time.sleep(0.05)
     click(tirar)
@@ -74,24 +107,14 @@ def rotando():
 def esperar_resultado():
     while rotando():
         time.sleep(0.01)
-    
-    
-def salio_negro():
-    r,g,b = colorpixel()
-    if r == 255 or r == 57:
-        return False
-    elif r == 41:
-        return True
-    else:
-        raise ValueError("Salio un color desconocido")
 
-def jugar_y_ver(cant):
-    alnegro(cant)
+
+def jugar_y_ver(amayor,amenor,apar,aimpar,arojo,anegro):
+    apostar(amayor,amenor,apar,aimpar,arojo,anegro)
     esperar_resultado()
-    return salio_negro()
+    return numero()
 
 def main():
-    succ = 1
     jugadas = []
     apuestas = []
     numeros = []
@@ -99,53 +122,77 @@ def main():
     creditos=inicial
     topemaximo = int(raw_input("Credito final esperado: "))
     time.sleep(5)
-    lista = [1,2,3,4]
-    if len(lista) == 1:
-        apuesta = lista[0]
-    else:
-        apuesta = lista[0] + lista[-1]
+
+    vmayor = Valores()
+    vmenor = Valores()
+    vpar = Valores()
+    vimpar = Valores()
+    vrojo = Valores()
+    vnegro = Valores()
     
     engine = pyttsx.init()
 
     
     while True:
-        print apuesta
         print creditos
         if creditos % 10==0:
             engine.say("%s" % (creditos-inicial))
             engine.runAndWait()
-        gane = jugar_y_ver(apuesta)
-        numeros.append(numero())
+        salio = jugar_y_ver(vmayor.proxima_apuesta(),vmenor.proxima_apuesta(),vpar.proxima_apuesta(),vimpar.proxima_apuesta(),vrojo.proxima_apuesta(),vnegro.proxima_apuesta())
+        numeros.append(salio)
         print "Salio el %s" % numeros[-1]
-        jugadas.append(gane)
-        apuestas.append(apuesta)
-        if gane:
-            lista = lista[1:-1]
-            if not lista:
-                lista = [1,2,3,4]
-            creditos += apuesta
-            succ -= 2
-            if succ <= 0:
-                succ = 1
-            if len(lista) == 1:
-                apuesta = lista[0]
-            else:
-                apuesta = lista[0] + lista[-1]
+        jugadas.append(salio)
+        apuestas.append((vmayor.proxima_apuesta(),vmenor.proxima_apuesta(),vpar.proxima_apuesta(),vimpar.proxima_apuesta(),vrojo.proxima_apuesta(),vnegro.proxima_apuesta()))
 
-        else:
-            lista.append(apuesta)
-            creditos -= apuesta
-            succ += 1
-            if len(lista) == 1:
-                apuesta = lista[0]
-            else:
-                apuesta = lista[0] + lista[-1]
 
-            if creditos - apuesta <= 0:
-                print "No tengo plata para la apuesta"
-                break
-            if apuesta > 400:
-                raise ValueError("Llegue a la apuesta maxima")
+        if salio == 0:
+            creditos -= vmayor.proxima_apuesta()
+            vmayor.perdi()
+            creditos -= vmenor.proxima_apuesta()
+            vmenor.perdi()
+            creditos -= vpar.proxima_apuesta()
+            vpar.perdi()
+            creditos -= vimpar.proxima_apuesta()
+            vimpar.perdi()
+            creditos -= vrojo.proxima_apuesta()
+            vrojo.perdi()
+            creditos -= vnegro.proxima_apuesta()
+            vnegro.perdi()
+        else:        
+            if salio in range(1,19):
+                creditos += vmayor.proxima_apuesta() * 2
+                creditos -= vmenor.proxima_apuesta()
+                vmayor.gane()
+                vmenor.perdi()
+            else:
+                creditos += vmenor.proxima_apuesta() * 2
+                creditos -= vmayor.proxima_apuesta()
+                vmenor.gane()
+                vmayor.perdi()
+            if salio in range(2,37,2):
+                creditos += vpar.proxima_apuesta() * 2
+                creditos -= vimpar.proxima_apuesta()
+                vpar.gane()
+                vimpar.perdi()
+            else:
+                creditos += vimpar.proxima_apuesta() * 2
+                creditos -= vpar.proxima_apuesta()
+                vimpar.gane()
+                vpar.perdi()
+            if salio in negros:
+                creditos += vnegro.proxima_apuesta() * 2
+                creditos -= vrojo.proxima_apuesta()
+                vnegro.gane()
+                vrojo.perdi()
+            else:
+                creditos += vrojo.proxima_apuesta() * 2
+                creditos -= vnegro.proxima_apuesta()
+                vrojo.gane()
+                vnegro.perdi()
+
+        if creditos - sum([ll.proxima_apuesta() for ll in [vmayor,vmenor,vpar,vimpar,vrojo,vnegro]]) < 0:
+            print "No tengo plata para la apuesta"
+            break
         if creditos >= topemaximo:
             print("Llegue a la plata esperada")
             break
